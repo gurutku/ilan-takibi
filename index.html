@@ -1,0 +1,596 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#152b46">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KPSS İlan Defteri">
+<title>KPSS P3 İlan Defteri</title>
+
+<style>
+:root {
+  --navy: #152b46;
+  --blue: #2c5ca8;
+  --bg: #f3f6fb;
+  --white: #fff;
+  --text: #1d2b3e;
+  --muted: #6c7a8d;
+  --border: #dce4ef;
+  --lightblue: #eaf1ff;
+  --green: #e2f6e9;
+  --red: #fde8e8;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  line-height: 1.5;
+}
+header {
+  background: linear-gradient(135deg, #152b46, #315b91);
+  color: white;
+  padding: 28px 18px;
+}
+.container { max-width: 1100px; margin: auto; padding: 0 16px; }
+header h1 { margin: 0 0 8px; font-size: clamp(26px, 5vw, 36px); }
+header p { margin: 0; color: #dbe7f6; }
+main { padding-top: 18px; padding-bottom: 45px; }
+.notice {
+  background: #fff5dc;
+  border: 1px solid #f0dfb0;
+  padding: 13px;
+  border-radius: 12px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+button, .btn {
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 13px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+button.active, button.primary {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+button.danger { color: #a12b2b; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 3px 12px #19335408;
+  min-width: 0;
+}
+.card h3 { margin: 6px 0; font-size: 17px; overflow-wrap: anywhere; }
+.card p { color: var(--muted); margin: 6px 0; font-size: 14px; overflow-wrap: anywhere; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
+  gap: 12px;
+}
+.grid .card { margin: 0; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 13px; }
+.toolbar input { flex: 1; min-width: 180px; }
+input, select, textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #cbd5e2;
+  border-radius: 10px;
+  font: inherit;
+  color: var(--text);
+  background: white;
+}
+textarea { min-height: 85px; resize: vertical; }
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 5px; color: var(--muted); }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 10px; }
+.actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.pill {
+  display: inline-block;
+  background: var(--lightblue);
+  color: #244e8e;
+  padding: 4px 8px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+.status { font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 7px; display: inline-block; background: #eef1f5; }
+.status.Başvuruldu { background: var(--green); color: #17643a; }
+.status.Kapandı { background: var(--red); color: #9c2727; }
+.status.Başvurulacak { background: var(--lightblue); color: #244e8e; }
+.empty {
+  text-align: center;
+  padding: 30px 15px;
+  color: var(--muted);
+  border: 1px dashed #bdcadb;
+  border-radius: 14px;
+  background: white;
+}
+.small { font-size: 12px; color: var(--muted); }
+.stat { display: inline-block; background: #ffffff20; border: 1px solid #ffffff35; border-radius: 9px; padding: 6px 10px; font-size: 13px; margin-top: 12px; }
+footer { color: var(--muted); font-size: 12px; padding-top: 22px; }
+h2 { font-size: 22px; }
+@media (max-width: 500px) {
+  header { padding: 23px 0; }
+  .container { padding: 0 12px; }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; }
+  .tabs button { width: 100%; }
+  .card { padding: 13px; }
+}
+</style>
+</head>
+
+<body>
+<header>
+  <div class="container">
+    <h1>KPSS P3 İlan Defteri</h1>
+    <p>Kamu kurumlarını keşfet, duyuruları kaydet ve başvurularını takip et.</p>
+    <div class="stat" id="count">0 kayıtlı ilan</div>
+  </div>
+</header>
+
+<main class="container">
+  <div class="notice">
+    <strong>Önemli:</strong> Bu uygulama ilanları otomatik taramaz. Kurum sayfalarını sen açar,
+    uygun ilanları manuel kaydedersin. Bir kurumun P3 ile alım yapması, her ilanında P3 veya
+    mimarlık mezuniyeti şartı olduğu anlamına gelmez. Son koşulları resmî ilandan kontrol et.
+  </div>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="institutions">Kurum rehberi</button>
+    <button class="tab" data-tab="add">İlan kaydet</button>
+    <button class="tab" data-tab="saved">Kayıtlı ilanlar</button>
+    <button class="tab" data-tab="backup">Yedekleme</button>
+  </nav>
+
+  <section id="institutions" class="tab-panel active">
+    <div class="toolbar">
+      <input id="institutionSearch" placeholder="Kurum ara...">
+      <select id="categoryFilter">
+        <option value="">Tüm kategoriler</option>
+      </select>
+    </div>
+    <div class="grid" id="institutionList"></div>
+  </section>
+
+  <section id="add" class="tab-panel">
+    <div class="card">
+      <h2 id="formHeading">Yeni ilan kaydet</h2>
+      <form id="noticeForm">
+        <div class="form-grid">
+          <div class="field">
+            <label for="title">İlan başlığı *</label>
+            <input id="title" required placeholder="Örn. Mimar alımı">
+          </div>
+          <div class="field">
+            <label for="institution">Kurum adı *</label>
+            <input id="institution" required placeholder="Kurumun adı">
+          </div>
+          <div class="field">
+            <label for="url">İlan bağlantısı *</label>
+            <input id="url" type="url" required placeholder="https://...">
+          </div>
+          <div class="field">
+            <label for="deadline">Son başvuru tarihi</label>
+            <input id="deadline" type="date">
+          </div>
+          <div class="field">
+            <label for="score">KPSS puan türü / taban puan</label>
+            <input id="score" placeholder="Örn. KPSS P3 / 70">
+          </div>
+          <div class="field">
+            <label for="degree">Mezuniyet şartı</label>
+            <input id="degree" placeholder="Örn. Mimarlık lisans mezunu">
+          </div>
+          <div class="field">
+            <label for="location">Şehir / çalışma yeri</label>
+            <input id="location" placeholder="Örn. Ankara">
+          </div>
+          <div class="field">
+            <label for="status">Takip durumu</label>
+            <select id="status">
+              <option>İncelenecek</option>
+              <option>Başvurulacak</option>
+              <option>Başvuruldu</option>
+              <option>Kapandı</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="notes">Notlar</label>
+          <textarea id="notes" placeholder="Özel şartlar, gerekli belgeler, sınav bilgisi..."></textarea>
+        </div>
+        <div class="actions">
+          <button type="submit" class="primary" id="saveButton">İlanı kaydet</button>
+          <button type="button" id="cancelEdit" hidden>İptal</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section id="saved" class="tab-panel">
+    <div class="toolbar">
+      <input id="savedSearch" placeholder="Kayıtlı ilanlarda ara...">
+      <select id="statusFilter">
+        <option value="">Tüm durumlar</option>
+        <option>İncelenecek</option>
+        <option>Başvurulacak</option>
+        <option>Başvuruldu</option>
+        <option>Kapandı</option>
+      </select>
+      <button id="sortButton">Tarihe göre sırala ↑</button>
+    </div>
+    <div class="grid" id="savedList"></div>
+  </section>
+
+  <section id="backup" class="tab-panel">
+    <div class="card">
+      <h2>Yedekleme</h2>
+      <p>Kayıtlarını JSON dosyasına aktarabilir veya daha önce aldığın yedeği geri yükleyebilirsin.</p>
+      <div class="actions">
+        <button class="primary" id="exportButton">Yedeği indir</button>
+        <label class="btn" for="importFile">Yedek içe aktar</label>
+        <input id="importFile" type="file" accept=".json,application/json" hidden>
+      </div>
+      <hr style="border:0;border-top:1px solid #dce4ef;margin:22px 0">
+      <h3>iPhone ana ekranına ekleme</h3>
+      <ol>
+        <li>Siteyi iPhone'da Safari ile aç.</li>
+        <li>Paylaş simgesine dokun.</li>
+        <li>“Ana Ekrana Ekle” seçeneğini seç.</li>
+        <li>“Ekle”ye dokun.</li>
+      </ol>
+      <p class="small">
+        Ana ekrana eklemek için siteyi HTTPS üzerinden yayımlaman gerekir.
+        Kayıtlar aynı tarayıcının yerel hafızasında tutulur; site verilerini silersen kaybolabilir.
+        Başka cihazlarla otomatik senkronizasyon yapılmaz.
+      </p>
+    </div>
+  </section>
+
+  <footer>KPSS P3 İlan Defteri · Kişisel takip aracı · Resmî duyurular esas alınmalıdır.</footer>
+</main>
+
+<script>
+"use strict";
+
+const SOURCES = [
+  {name:"ÖSYM – Ana sayfa", category:"Sınav ve merkezi yerleştirme", url:"https://www.osym.gov.tr/"},
+  {name:"ÖSYM – Aday İşlemleri", category:"Sınav ve merkezi yerleştirme", url:"https://ais.osym.gov.tr/"},
+  {name:"Kariyer Kapısı – İşe Alım", category:"Genel kamu ilanları", url:"https://kariyerkapisi.gov.tr/"},
+  {name:"Resmî Gazete – İlanlar", category:"Resmî ilanlar", url:"https://www.resmigazete.gov.tr/ilanlar"},
+  {name:"İlan.gov.tr – Kamu personel alımları", category:"Genel kamu ilanları", url:"https://www.ilan.gov.tr/ilan/kategori/3/kamu-personel-alim-ve-sinavlari"},
+  {name:"İŞKUR", category:"Genel kamu ilanları", url:"https://www.iskur.gov.tr/"},
+  {name:"İŞKUR – E-Şube", category:"Genel kamu ilanları", url:"https://esube.iskur.gov.tr/"},
+  {name:"Memurlar.net – İlanlar", category:"İkincil ilan kaynakları", url:"https://ilan.memurlar.net/"},
+  {name:"Kamu İK", category:"İkincil ilan kaynakları", url:"https://www.kamuik.com/"},
+  {name:"Cumhurbaşkanlığı Strateji ve Bütçe Başkanlığı", category:"Kamu kurumları", url:"https://www.sbb.gov.tr/"},
+  {name:"Çevre, Şehircilik ve İklim Değişikliği Bakanlığı", category:"Mimarlık ve teknik kurumlar", url:"https://csb.gov.tr/"},
+  {name:"TOKİ", category:"Mimarlık ve teknik kurumlar", url:"https://www.toki.gov.tr/"},
+  {name:"İller Bankası", category:"Mimarlık ve teknik kurumlar", url:"https://www.ilbank.gov.tr/"},
+  {name:"Kültür ve Turizm Bakanlığı", category:"Mimarlık ve teknik kurumlar", url:"https://www.ktb.gov.tr/"},
+  {name:"Vakıflar Genel Müdürlüğü", category:"Mimarlık ve teknik kurumlar", url:"https://www.vgm.gov.tr/"},
+  {name:"Tapu ve Kadastro Genel Müdürlüğü", category:"Mimarlık ve teknik kurumlar", url:"https://www.tkgm.gov.tr/"},
+  {name:"Karayolları Genel Müdürlüğü", category:"Teknik kamu kurumları", url:"https://www.kgm.gov.tr/"},
+  {name:"Devlet Su İşleri Genel Müdürlüğü", category:"Teknik kamu kurumları", url:"https://www.dsi.gov.tr/"},
+  {name:"Orman Genel Müdürlüğü", category:"Teknik kamu kurumları", url:"https://www.ogm.gov.tr/"},
+  {name:"Tarım ve Orman Bakanlığı", category:"Bakanlıklar", url:"https://www.tarimorman.gov.tr/"},
+  {name:"Ulaştırma ve Altyapı Bakanlığı", category:"Bakanlıklar", url:"https://www.uab.gov.tr/"},
+  {name:"Sanayi ve Teknoloji Bakanlığı", category:"Bakanlıklar", url:"https://www.sanayi.gov.tr/"},
+  {name:"Hazine ve Maliye Bakanlığı", category:"Bakanlıklar", url:"https://www.hmb.gov.tr/"},
+  {name:"Ticaret Bakanlığı", category:"Bakanlıklar", url:"https://www.ticaret.gov.tr/"},
+  {name:"İçişleri Bakanlığı", category:"Bakanlıklar", url:"https://www.icisleri.gov.tr/"},
+  {name:"Adalet Bakanlığı", category:"Bakanlıklar", url:"https://www.adalet.gov.tr/"},
+  {name:"Millî Eğitim Bakanlığı", category:"Bakanlıklar", url:"https://www.meb.gov.tr/"},
+  {name:"Sağlık Bakanlığı", category:"Bakanlıklar", url:"https://www.saglik.gov.tr/"},
+  {name:"Enerji ve Tabii Kaynaklar Bakanlığı", category:"Bakanlıklar", url:"https://enerji.gov.tr/"},
+  {name:"Aile ve Sosyal Hizmetler Bakanlığı", category:"Bakanlıklar", url:"https://www.aile.gov.tr/"},
+  {name:"Gençlik ve Spor Bakanlığı", category:"Bakanlıklar", url:"https://gsb.gov.tr/"},
+  {name:"Dışişleri Bakanlığı", category:"Bakanlıklar", url:"https://www.mfa.gov.tr/"},
+  {name:"Türkiye İstatistik Kurumu", category:"Kamu kurumları", url:"https://www.tuik.gov.tr/"},
+  {name:"Devlet Demiryolları – TCDD", category:"Kamu kurumları", url:"https://www.tcdd.gov.tr/"},
+  {name:"DHMİ", category:"Kamu kurumları", url:"https://www.dhmi.gov.tr/"},
+  {name:"Türkiye Belediyeler Birliği", category:"Belediyeler ve yerel yönetimler", url:"https://www.tbb.gov.tr/"},
+  {name:"Yükseköğretim Kurulu – YÖK", category:"Üniversiteler", url:"https://www.yok.gov.tr/"},
+  {name:"Ankara Üniversitesi", category:"Üniversiteler", url:"https://www.ankara.edu.tr/"},
+  {name:"İstanbul Üniversitesi", category:"Üniversiteler", url:"https://www.istanbul.edu.tr/"},
+  {name:"Gazi Üniversitesi", category:"Üniversiteler", url:"https://gazi.edu.tr/"},
+  {name:"İstanbul Teknik Üniversitesi", category:"Üniversiteler", url:"https://www.itu.edu.tr/"},
+  {name:"Orta Doğu Teknik Üniversitesi", category:"Üniversiteler", url:"https://www.metu.edu.tr/"},
+  {name:"Yıldız Teknik Üniversitesi", category:"Üniversiteler", url:"https://www.yildiz.edu.tr/"},
+  {name:"Hacettepe Üniversitesi", category:"Üniversiteler", url:"https://www.hacettepe.edu.tr/"},
+  {name:"Marmara Üniversitesi", category:"Üniversiteler", url:"https://www.marmara.edu.tr/"},
+  {name:"Ege Üniversitesi", category:"Üniversiteler", url:"https://www.ege.edu.tr/"},
+  {name:"Dokuz Eylül Üniversitesi", category:"Üniversiteler", url:"https://www.deu.edu.tr/"},
+  {name:"Düzce Üniversitesi", category:"Üniversiteler", url:"https://www.duzce.edu.tr/"},
+  {name:"Anadolu Üniversitesi", category:"Üniversiteler", url:"https://www.anadolu.edu.tr/"},
+  {name:"Erciyes Üniversitesi", category:"Üniversiteler", url:"https://www.erciyes.edu.tr/"},
+  {name:"Selçuk Üniversitesi", category:"Üniversiteler", url:"https://www.selcuk.edu.tr/"}
+];
+
+const STORAGE_KEY = "kpssP3IlanDefteri_v1";
+let notices = readNotices();
+let editingId = null;
+let ascending = true;
+
+function readNotices() {
+  try {
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(notices));
+    renderSaved();
+    updateCount();
+  } catch {
+    alert("Tarayıcı kayıt alanına yazılamadı. Yedek almayı dene.");
+  }
+}
+function updateCount() {
+  document.getElementById("count").textContent = notices.length + " kayıtlı ilan";
+}
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  })[ch]);
+}
+function safeURL(value) {
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "#";
+  } catch {
+    return "#";
+  }
+}
+function showTab(id) {
+  document.querySelectorAll(".tab").forEach(btn =>
+    btn.classList.toggle("active", btn.dataset.tab === id)
+  );
+  document.querySelectorAll(".tab-panel").forEach(panel =>
+    panel.classList.toggle("active", panel.id === id)
+  );
+  if (id === "saved") renderSaved();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+document.querySelectorAll(".tab").forEach(btn =>
+  btn.addEventListener("click", () => showTab(btn.dataset.tab))
+);
+
+function renderSources() {
+  const query = document.getElementById("institutionSearch").value.toLocaleLowerCase("tr");
+  const category = document.getElementById("categoryFilter").value;
+  const categories = [...new Set(SOURCES.map(s => s.category))].sort((a,b)=>a.localeCompare(b,"tr"));
+  const select = document.getElementById("categoryFilter");
+  const oldValue = select.value;
+  select.innerHTML = '<option value="">Tüm kategoriler</option>' +
+    categories.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join("");
+  if (categories.includes(oldValue)) select.value = oldValue;
+
+  const list = SOURCES.filter(s =>
+    (!category || s.category === category) &&
+    (s.name + " " + s.category).toLocaleLowerCase("tr").includes(query)
+  );
+
+  document.getElementById("institutionList").innerHTML = list.map((s,i) => `
+    <article class="card">
+      <span class="pill">${escapeHTML(s.category)}</span>
+      <h3>${escapeHTML(s.name)}</h3>
+      <p>İlgili kurumun duyuru ve personel alım sayfalarını kontrol et.</p>
+      <div class="actions">
+        <a class="btn" href="${safeURL(s.url)}" target="_blank" rel="noopener noreferrer">Siteyi aç ↗</a>
+        <button type="button" data-source="${i}">İlan kaydet</button>
+      </div>
+    </article>
+  `).join("") || '<div class="empty">Uygun kurum bulunamadı.</div>';
+
+  document.querySelectorAll("[data-source]").forEach(button => {
+    button.addEventListener("click", () => {
+      const source = list[Number(button.dataset.source)];
+      resetForm();
+      document.getElementById("institution").value = source.name;
+      document.getElementById("url").value = source.url;
+      showTab("add");
+      document.getElementById("title").focus();
+    });
+  });
+}
+document.getElementById("institutionSearch").addEventListener("input", renderSources);
+document.getElementById("categoryFilter").addEventListener("change", renderSources);
+
+function getField(id) {
+  return document.getElementById(id).value.trim();
+}
+function resetForm() {
+  document.getElementById("noticeForm").reset();
+  editingId = null;
+  document.getElementById("formHeading").textContent = "Yeni ilan kaydet";
+  document.getElementById("saveButton").textContent = "İlanı kaydet";
+  document.getElementById("cancelEdit").hidden = true;
+}
+document.getElementById("cancelEdit").addEventListener("click", resetForm);
+
+document.getElementById("noticeForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const url = safeURL(getField("url"));
+  if (url === "#") {
+    alert("Lütfen geçerli bir http veya https bağlantısı gir.");
+    return;
+  }
+
+  const item = {
+    id: editingId || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
+    title: getField("title"),
+    institution: getField("institution"),
+    url,
+    deadline: document.getElementById("deadline").value,
+    score: getField("score"),
+    degree: getField("degree"),
+    location: getField("location"),
+    status: document.getElementById("status").value,
+    notes: getField("notes"),
+    updated: new Date().toISOString()
+  };
+
+  if (editingId) {
+    notices = notices.map(n => n.id === editingId ? item : n);
+  } else {
+    notices.unshift(item);
+  }
+
+  persist();
+  resetForm();
+  showTab("saved");
+});
+
+function renderSaved() {
+  const query = document.getElementById("savedSearch").value.toLocaleLowerCase("tr");
+  const status = document.getElementById("statusFilter").value;
+  let list = notices.filter(n =>
+    (!status || n.status === status) &&
+    [n.title,n.institution,n.url,n.notes,n.degree,n.score,n.location]
+      .join(" ").toLocaleLowerCase("tr").includes(query)
+  );
+
+  list.sort((a,b) => {
+    const da = a.deadline || "9999-12-31";
+    const db = b.deadline || "9999-12-31";
+    return da.localeCompare(db) * (ascending ? 1 : -1);
+  });
+
+  const root = document.getElementById("savedList");
+  if (!list.length) {
+    root.innerHTML = '<div class="empty">Henüz kayıtlı ilan yok. Kurum rehberinden bir sayfa açıp ilan ekleyebilirsin.</div>';
+    return;
+  }
+
+  root.innerHTML = list.map(n => `
+    <article class="card">
+      <span class="status ${escapeHTML(n.status)}">${escapeHTML(n.status)}</span>
+      ${n.deadline ? `<span class="pill">Son tarih: ${escapeHTML(n.deadline)}</span>` : ""}
+      <h3>${escapeHTML(n.title)}</h3>
+      <p><strong>${escapeHTML(n.institution)}</strong>${n.location ? " · " + escapeHTML(n.location) : ""}</p>
+      ${n.score ? `<p><strong>Puan:</strong> ${escapeHTML(n.score)}</p>` : ""}
+      ${n.degree ? `<p><strong>Mezuniyet:</strong> ${escapeHTML(n.degree)}</p>` : ""}
+      ${n.notes ? `<p>${escapeHTML(n.notes)}</p>` : ""}
+      <div class="actions">
+        <a class="btn" href="${safeURL(n.url)}" target="_blank" rel="noopener noreferrer">İlanı aç ↗</a>
+        <button type="button" data-edit="${escapeHTML(n.id)}">Düzenle</button>
+        <button type="button" class="danger" data-delete="${escapeHTML(n.id)}">Sil</button>
+      </div>
+    </article>
+  `).join("");
+
+  root.querySelectorAll("[data-delete]").forEach(button => {
+    button.addEventListener("click", () => {
+      if (confirm("Bu ilan kaydını silmek istiyor musun?")) {
+        notices = notices.filter(n => n.id !== button.dataset.delete);
+        persist();
+      }
+    });
+  });
+
+  root.querySelectorAll("[data-edit]").forEach(button => {
+    button.addEventListener("click", () => editNotice(button.dataset.edit));
+  });
+}
+
+function editNotice(id) {
+  const n = notices.find(item => item.id === id);
+  if (!n) return;
+  editingId = id;
+  ["title","institution","url","deadline","score","degree","location","status","notes"].forEach(key => {
+    document.getElementById(key).value = n[key] || "";
+  });
+  document.getElementById("formHeading").textContent = "İlanı düzenle";
+  document.getElementById("saveButton").textContent = "Değişiklikleri kaydet";
+  document.getElementById("cancelEdit").hidden = false;
+  showTab("add");
+}
+
+document.getElementById("savedSearch").addEventListener("input", renderSaved);
+document.getElementById("statusFilter").addEventListener("change", renderSaved);
+document.getElementById("sortButton").addEventListener("click", () => {
+  ascending = !ascending;
+  document.getElementById("sortButton").textContent =
+    ascending ? "Tarihe göre sırala ↑" : "Tarihe göre sırala ↓";
+  renderSaved();
+});
+
+document.getElementById("exportButton").addEventListener("click", () => {
+  const backup = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    notices
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "kpss-ilan-defteri-yedek.json";
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+
+document.getElementById("importFile").addEventListener("change", async event => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    const data = JSON.parse(await file.text());
+    const incoming = Array.isArray(data) ? data : data.notices;
+    if (!Array.isArray(incoming)) throw new Error("Geçersiz dosya");
+
+    if (!confirm(`${incoming.length} ilan içe aktarılsın mı? Mevcut kayıtlar korunur.`)) return;
+
+    const ids = new Set(notices.map(n => n.id));
+    incoming.forEach(n => {
+      if (!n || !n.title || !n.institution || safeURL(n.url) === "#") return;
+      const copy = {...n};
+      if (!copy.id || ids.has(copy.id)) {
+        copy.id = crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random();
+      }
+      ids.add(copy.id);
+      notices.push(copy);
+    });
+
+    persist();
+    alert("Yedek içe aktarıldı.");
+  } catch {
+    alert("Dosya okunamadı. Geçerli bir JSON yedeği seç.");
+  } finally {
+    event.target.value = "";
+  }
+});
+
+renderSources();
+renderSaved();
+updateCount();
+</script>
+</body>
+</html>
